@@ -2,23 +2,49 @@
 from tkinter import Tk as tk
 from tkinter import filedialog
 import pandas as pd
+from decimal import Decimal
 
 def main():
     files = get_files_xml()
+    dataframe = get_data(files)
+    print(dataframe)
+
+def get_data(files):
+    df = pd.DataFrame()
+    namespaces = {'cfdi': 'http://www.sat.gob.mx/cfd/4'}
+    for file in files:
+        df_header = get_header_xml(file,namespaces)
+        df_receptor = get_receptor_xml(file,namespaces)
+        df_concept = get_concepto_xml(file,namespaces)
+        df_transfer = get_traslado_xml(file,namespaces)
+        df_header = df_header.join(df_receptor,how='inner')
+        if df_concept.shape[0] > 1:
+            df_header = df_header.join(df_concept,how='outer')
+            for column in df_header.columns[:df_header.columns.get_loc('UsoCFDI') + 1]:
+                df_header[column] = df_header[column].ffill()
+        else:
+            df_header = df_header.join(df_concept,how='outer')
+        total_concept = df_concept.shape[0]
+        df_transfer = df_transfer.head(total_concept)
+        df_header = df_header.join(df_transfer,how='outer')
+        df = pd.concat([df,df_header],ignore_index=True)
+    return df
 
 def get_traslado_xml(file,namespaces):
     types = {'Impuesto':'string','Importe':'string'}
     names = ['Impuesto','ImpuestoTrasladado']
     df = pd.read_xml(file,xpath=".//cfdi:Traslado",namespaces=namespaces,dtype=types)
     df.rename(columns={'Importe':'ImpuestoTrasladado'}, inplace=True)
+    df['ImpuestoTrasladado'] = df['ImpuestoTrasladado'].apply(lambda x: Decimal(x) if x else Decimal('0.00'))
     return df[names]
 
 def get_concepto_xml(file,namespaces):
-    types = {'Descripcion':'string','Cantidad':'string','Importe':'string'}
+    types = {'Descripcion':'string','Cantidad':'int64','Importe':'string'}
     names = ['Descripcion','Cantidad','Subtotal']
     df = pd.read_xml(file,xpath=".//cfdi:Concepto",namespaces=namespaces,dtype=types)
     df.rename(columns={'Importe':'Subtotal'}, inplace=True)
-    return df[names]
+    df['Subtotal'] = df['Subtotal'].apply(lambda x: Decimal(x) if x else Decimal('0.00'))
+    return df[names] 
 
 def get_receptor_xml(file,namespaces):
     types = {'Nombre':'string', 'DomicilioFiscalReceptor':'string', 'RegimenFiscalReceptor':'string','UsoCFDI':'string'}
