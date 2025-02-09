@@ -6,6 +6,13 @@ import pandas as pd
 def main():
     files = get_files_xml()
 
+def get_traslado_xml(file,namespaces):
+    types = {'Impuesto':'string','Importe':'string'}
+    names = ['Impuesto','ImpuestoTrasladado']
+    df = pd.read_xml(file,xpath=".//cfdi:Traslado",namespaces=namespaces,dtype=types)
+    df.rename(columns={'Importe':'ImpuestoTrasladado'}, inplace=True)
+    return df[names]
+
 def get_concepto_xml(file,namespaces):
     types = {'Descripcion':'string','Cantidad':'string','Importe':'string'}
     names = ['Descripcion','Cantidad','Subtotal']
