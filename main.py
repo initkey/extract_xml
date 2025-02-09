@@ -1,13 +1,29 @@
 #Script básico para extraer información de xml's
 from tkinter import Tk as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import pandas as pd
 from decimal import Decimal
+import os
 
 def main():
+    messagebox.showinfo(message="Seleccione los xml a guardar", title="Mensaje informativo")
     files = get_files_xml()
     dataframe = get_data(files)
-    print(dataframe)
+    messagebox.showinfo(message="Guarde el archivo generado a continuación", title="Mensaje informativo")
+    save_file(dataframe)
+
+def save_file(dataframe):
+    root = tk()
+    root.withdraw()  # Oculta la ventana principal de Tkinter
+    save_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")])
+    
+    if save_path:  # Verifica si el usuario seleccionó una ubicación
+        dataframe.to_excel(save_path,index=False)
+        new_name = save_path.split('/')[-1]
+        messagebox.showinfo(message=f"Archivo {new_name} generado correctamente", title="Guardado")
+    else:
+        messagebox.showinfo(message="Guardado cancelado", title="Cancelado")
 
 def get_data(files):
     df = pd.DataFrame()
