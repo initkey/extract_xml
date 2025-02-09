@@ -1,10 +1,17 @@
 #Script básico para extraer información de xml's
 from tkinter import Tk as tk
 from tkinter import filedialog
+import pandas as pd
 
 def main():
     files = get_files_xml()
     print(f"Archivos: {files}")
+
+def get_header_xml(file,namespaces):
+    names = ['Folio','Fecha','MetodoPago','FormaPago','Moneda']
+    types = {'Folio':'string','Fecha':'string','MetodoPago':'string','FormaPago':'string','Moneda':'string'}
+    df = pd.read_xml(file,xpath="/cfdi:Comprobante",namespaces=namespaces,attrs_only=True,dtype=types)
+    return df[['Folio','Fecha','MetodoPago','FormaPago','Moneda']]
 
 #Función encargada de obtener los archivos xml
 def get_files_xml():
@@ -19,4 +26,3 @@ def get_files_xml():
 
 if __name__ == "__main__":
     main()
-
