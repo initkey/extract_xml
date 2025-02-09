@@ -6,15 +6,22 @@ import pandas as pd
 def main():
     files = get_files_xml()
 
+def get_concepto_xml(file,namespaces):
+    types = {'Descripcion':'string','Cantidad':'string','Importe':'string'}
+    names = ['Descripcion','Cantidad','Subtotal']
+    df = pd.read_xml(file,xpath=".//cfdi:Concepto",namespaces=namespaces,dtype=types)
+    df.rename(columns={'Importe':'Subtotal'}, inplace=True)
+    return df[names]
+
 def get_receptor_xml(file,namespaces):
-    names = ['Nombre', 'DomicilioFiscalReceptor', 'RegimenFiscalReceptor','UsoCFDI']
     types = {'Nombre':'string', 'DomicilioFiscalReceptor':'string', 'RegimenFiscalReceptor':'string','UsoCFDI':'string'}
-    df = pd.read_xml(file,xpath=".//cfdi:Receptor",namespaces=namespaces)
+    names = ['Nombre', 'DomicilioFiscalReceptor', 'RegimenFiscalReceptor','UsoCFDI']
+    df = pd.read_xml(file,xpath=".//cfdi:Receptor",namespaces=namespaces,dtype=types)
     return df[names]
 
 def get_header_xml(file,namespaces):
-    names = ['Folio','Fecha','MetodoPago','FormaPago','Moneda']
     types = {'Folio':'string','Fecha':'string','MetodoPago':'string','FormaPago':'string','Moneda':'string'}
+    names = ['Folio','Fecha','MetodoPago','FormaPago','Moneda']
     df = pd.read_xml(file,xpath="/cfdi:Comprobante",namespaces=namespaces,attrs_only=True,dtype=types)
     return df[names]
 
