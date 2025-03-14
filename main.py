@@ -45,6 +45,7 @@ def get_data(files):
         df_transfer = df_transfer.head(total_concept)
         df_header = df_header.join(df_transfer,how='outer')
         df = pd.concat([df,df_header],ignore_index=True)
+    df.insert(2,'Mes', df['Fecha'].dt.month_name())
     return df
 
 #Función encargada de obtener el dataframe del nodo Traslado
@@ -77,6 +78,7 @@ def get_header_xml(file,namespaces):
     types = {'Folio':'string','Fecha':'string','MetodoPago':'string','FormaPago':'string','Moneda':'string'}
     names = ['Folio','Fecha','MetodoPago','FormaPago','Moneda']
     df = pd.read_xml(file,xpath="/cfdi:Comprobante",namespaces=namespaces,attrs_only=True,dtype=types)
+    df['Fecha'] = pd.to_datetime(df['Fecha'])
     return df[names]
 
 #Función encargada de obtener los archivos xml
